@@ -1,6 +1,6 @@
 const test = new RegExp("^(.*)::([^ ]*) ([^ ]*) +\\[(.*)\\%\\]");
 const test2 = new RegExp("^([^ ]+) +(.*): ([0-9]+) tests \\((.*) secs\\)");
-const test3 = new RegExp("^([^ ]*) ([\\.sf]+)$");
+const test3 = new RegExp("^([^ ]*) ([\\.sF]+)( .*\\[.*)?$");
 const test4 = new RegExp("1: \\{1\\} ([^ ]*) \\[(.*)s\\] ... (.*)$");
 
 class PyParser {
@@ -16,7 +16,7 @@ class PyParser {
                 name: result[1] + "::" + result[2],
                 body: "",
                 nbTest: 1,
-                nbFailure: result[3] === "FAILED"?1:0,
+                nbFailure: result[3].indexOf("FAIL") != -1 ?1:0,
                 nbError: 0,
                 nbSkipped: 0,
                 time: 0
@@ -40,9 +40,9 @@ class PyParser {
                         name: result[1],
                         body: "",
                         nbTest: result[2].length,
-                        nbFailure: (result[2].match(/f/g)||[]).length,
+                        nbFailure: (result[2].match(/F/g)||[]).length,
                         nbError: 0,
-                        nbSkipped: (result[2].match(/\\./g)||[]).length,
+                        nbSkipped: (result[2].match(/\\s/g)||[]).length,
                         time: 0
                     });
                 } else {

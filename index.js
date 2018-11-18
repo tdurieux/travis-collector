@@ -153,7 +153,8 @@ function getJobs(jobs, callback) {
     jobs.forEach(j => job_ids.push(j.id));
     travis.jobs('?ids[]=' + job_ids.join('&ids[]=')).log.get((err, data) => {
         if (err) {
-            return console.error(err);
+            console.error(err);
+            return callback([]);
         }
         const jobs = data.jobs;
         const commits = data.commits;
