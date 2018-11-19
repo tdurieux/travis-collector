@@ -65,7 +65,6 @@ class JavaParser {
                         } else {
                             gradle = gradleRegex2.exec(line);
                             if (gradle) {
-                                console.log(gradle)
                                 this.tests.push({
                                     name: gradle[1],
                                     body: gradle[2] != "✔"? gradle[3]: '',

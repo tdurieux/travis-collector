@@ -12,9 +12,6 @@ class JsParser {
     }
 
     parse(line) {
-        if (line.indexOf("✓") != -1 && testPassed.exec(line) == null) {
-            console.log(line)
-        }
         let result = testNoAssert.exec(line);
         if (result) {
             this.tests.push({
