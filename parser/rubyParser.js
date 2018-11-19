@@ -2,6 +2,8 @@ const test = new RegExp("^([\\.sF\\*]{4,})$");
 
 class RubyParser {
     constructor() {
+        this.languages = ["ruby"];
+
         this.tests = [];
         this.errors = [];
     }

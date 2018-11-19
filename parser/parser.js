@@ -5,7 +5,7 @@ const JsParser = require('./npmParser').Parser;
 const PyParser = require('./pythonParser').Parser;
 const ObjcParser = require('./objcParser').Parser;
 const PhpParser = require('./phpParser').Parser;
-const RubyParser = require('./rubyParser').Parser
+const RubyParser = require('./rubyParser').Parser;
 
 const travis = new Travis({
     version: '2.0.0'
@@ -38,6 +38,13 @@ function log_parser(job, callback) {
 
         for(let line of lines) {
             line = stripAnsi(line);
+
+            if ((!job.config || !job.config.language) && line.indexOf("Build language: ") == 0) {
+                if (!job.config) {
+                    job.config = {};
+                }
+                job.config.language = line.replace("Build language: ", "");
+            }
             /*const start = fold_start.exec(line);
             const end = fold_end.exec(line);
             if (end) {
@@ -58,6 +65,11 @@ function log_parser(job, callback) {
                 current_fold += line + "\n";
             }*/
             for (let parser of parsers) {
+                if (parser.languages && job.config && job.config.language) {
+                    if (parser.languages.indexOf(job.config.language) == -1) {
+                        continue;
+                    }
+                }
                 try {
                     parser.parse(line);
                 } catch (e) {
