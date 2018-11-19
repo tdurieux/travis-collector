@@ -1,7 +1,9 @@
 const testNoAssert = new RegExp("✖ (.*) Test finished without running any assertions");
-const testPassed = new RegExp("✔ (.*) \\(([0-9\\.]*)s\\)");
+const testPassed = new RegExp("(✔|✓) ([^\\(]+)( \\(([0-9\\.]+)(.+)\\))$");
 const test2 = new RegExp("(ok|ko) ([0-9]+) (.*)$");
 const test3 = new RegExp("Executed ([0-9]+) of ([0-9]+) (.*) \\(([0-9\\.]*) secs / ([0-9\\.]*) secs\\)");
+
+const error = new RegExp("(.+):([0-9]+):([0-9]+) - error ([A-Z1-9]+): (.+)")
 
 class JsParser {
     constructor() {
@@ -10,6 +12,9 @@ class JsParser {
     }
 
     parse(line) {
+        if (line.indexOf("✓") != -1 && testPassed.exec(line) == null) {
+            console.log(line)
+        }
         let result = testNoAssert.exec(line);
         if (result) {
             this.tests.push({
@@ -25,14 +30,24 @@ class JsParser {
         } else {
             result = testPassed.exec(line);
             if (result) {
+
+                let time = 0;
+                if (result[4] != null) {
+                    time = parseFloat(result[4])
+                    if (result[5] == "ms") {
+                        time *= 0.001;
+                    } else if (result[5] == "m") {
+                        time *= 60;
+                    }
+                }
                 this.tests.push({
-                    name: result[1],
+                    name: result[2],
                     body: "",
                     nbTest: 1,
                     nbFailure: 0,
                     nbError: 0,
                     nbSkipped: 0,
-                    time: parseFloat(result[2])
+                    time: time
                 });
             } else {
                 result = test2.exec(line);
@@ -58,6 +73,15 @@ class JsParser {
                             nbSkipped: 0,
                             time: parseFloat(result[5])
                         });
+                    } else {
+                        result = error.exec(line);
+                        if (result) {
+                            this.errors.push({
+                                file: result[1],
+                                line: parseInt(result[2]),
+                                message: result[5]
+                            });
+                        }
                     }
                 }
             }

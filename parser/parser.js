@@ -5,6 +5,7 @@ const JsParser = require('./npmParser').Parser;
 const PyParser = require('./pythonParser').Parser;
 const ObjcParser = require('./objcParser').Parser;
 const PhpParser = require('./phpParser').Parser;
+const RubyParser = require('./rubyParser').Parser
 
 const travis = new Travis({
     version: '2.0.0'
@@ -19,7 +20,7 @@ function log_parser(job, callback) {
         if (err != null) {
             console.log(err);
 
-            return callback([], [])
+            return callback([], [], null)
         }
         const folds = [];
         let log = data;
@@ -27,13 +28,13 @@ function log_parser(job, callback) {
             log = log.log.body
         }
         if (log == null) {
-            return callback([], [])
+            return callback([], [], null)
         }
         let current_fold = '';
         let current_fold_id = null;
         const lines = log.split(/\r?\n/);
 
-        const parsers = [new JavaParser(), new JsParser(), new PyParser(), new ObjcParser(), new PhpParser()];
+        const parsers = [new JavaParser(), new JsParser(), new PyParser(), new ObjcParser(), new PhpParser(), new RubyParser()];
 
         for(let line of lines) {
             line = stripAnsi(line);
@@ -77,7 +78,7 @@ function log_parser(job, callback) {
             errors = errors.concat(parser.errors);
         }
         if (callback) {
-            callback(tests, errors);
+            callback(tests, errors, log);
         }
     })
 }

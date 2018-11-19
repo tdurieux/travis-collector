@@ -1,12 +1,17 @@
-const test = new RegExp("^(.*)::([^ ]*) ([^ ]*) +\\[(.*)\\%\\]");
+const test = new RegExp("^(.*)::(.*) ([^ ]*) +\\[(.*)\\%\\]");
 const test2 = new RegExp("^([^ ]+) +(.*): ([0-9]+) tests \\((.*) secs\\)");
-const test3 = new RegExp("^([^ ]*) ([\\.sF]+)( .*\\[.*)?$");
+const test3 = new RegExp("^([^ ]+) ([\\.sF]+)( .*\\[.*)?$");
 const test4 = new RegExp("1: \\{1\\} ([^ ]*) \\[(.*)s\\] ... (.*)$");
+const test5 = new RegExp("^(PASS|FAIL): (.*)");
+
+const testStartWithBody = new RegExp("^(.*)::(test_.*)");
 
 class PyParser {
     constructor() {
         this.tests = [];
         this.errors = [];
+
+        this.currentTest == null;
     }
 
     parse(line) {
@@ -16,7 +21,7 @@ class PyParser {
                 name: result[1] + "::" + result[2],
                 body: "",
                 nbTest: 1,
-                nbFailure: result[3].indexOf("FAIL") != -1 ?1:0,
+                nbFailure: result[3].indexOf("FAIL") != -1 ? 1:0,
                 nbError: 0,
                 nbSkipped: 0,
                 time: 0
@@ -57,6 +62,44 @@ class PyParser {
                             nbSkipped: 0,
                             time: parseFloat(result[2])
                         });
+                    } else {
+                        result = test5.exec(line);
+                        if (result) {
+                            this.tests.push({
+                                name: result[2],
+                                body: "",
+                                nbTest: 1,
+                                nbFailure: result[1] == "FAIL"?1:0,
+                                nbError: 0,
+                                nbSkipped: 0,
+                                time: 0
+                            });
+                        } else {
+                            result = testStartWithBody.exec(line);
+                            if (result) {
+                                this.currentTest = {
+                                    name: result[1] + "::" + result[2],
+                                    body: "",
+                                    nbTest: 1,
+                                    nbFailure: 0,
+                                    nbError: 0,
+                                    nbSkipped: 0,
+                                    time: 0
+                                }
+                            } else {
+                                if (this.currentTest != null) {
+                                    if (line == "PASSED" || line == "FAILED") {
+                                        if (line == "FAILED") {
+                                            this.currentTest.nbFailure = 1;
+                                        }
+                                        this.tests.push(this.currentTest);
+                                        this.currentTest = null;
+                                    } else {
+                                        this.currentTest.body += line + "\n";
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

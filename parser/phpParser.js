@@ -1,5 +1,6 @@
 const timeRegex = new RegExp("Time: ([0-9\\.]+) ([^,]+), Memory: ([0-9\\.]+)(.+)");
-const testResults = new RegExp("Tests: ([0-9]+), Assertions: ([0-9]+), Skipped: ([0-9]+), Incomplete: ([0-9]+).");
+const testResults = new RegExp("Tests: ([0-9]+), Assertions: ([0-9]+)(, Skipped: ([0-9]+))?(, Incomplete: ([0-9]+))?(, Failures: ([0-9]+))?.");
+const testResultsOk = new RegExp("OK \\(([0-9]+) tests, ([0-9]+) assertions\\)");
 
 class PhpParser {
     constructor() {
@@ -21,13 +22,23 @@ class PhpParser {
                 time: time[1] * ((time[2] == "minutes")? 60: 1)
             };
         } else {
-            const test = testResults.exec(line);
+            let test = testResults.exec(line);
             if (test) {
                 this.currentTest.nbTest = parseInt(test[1]);
-                this.currentTest.nbFailure = parseInt(test[4]);
-                this.currentTest.nbSkipped = parseInt(test[3]);
+                this.currentTest.nbAssertion = parseInt(test[2]);
+                this.currentTest.nbIncomplete = parseInt(test[6]);
+                this.currentTest.nbSkipped = parseInt(test[4]);
+                this.currentTest.nbFailure = test[8]?parseInt(test[8]):0;
                 this.tests.push(this.currentTest);
                 this.currentTest = null;
+            } else {
+                let test = testResultsOk.exec(line);
+                if (test) {
+                    this.currentTest.nbTest = parseInt(test[1]);
+                    this.currentTest.nbAssertion = parseInt(test[2]);
+                    this.tests.push(this.currentTest);
+                    this.currentTest = null;
+                }
             }
         }
     }
