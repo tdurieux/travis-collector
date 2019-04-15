@@ -1,17 +1,31 @@
+const Parser = require("./Parser").Parser;
+
 const startTestRun = new RegExp("Running (.*Tests?.*)$");
 const endTestRun = new RegExp("Tests run: ([0-9]+), Failures: ([0-9]+), Errors: ([0-9]+), Skipped: ([0-9]+), Time elapsed: ([0-9\.]+) s");
 const gradleRegex = new RegExp("\\[([^\\]]+)\\]: ([A-Z]+) in (.*)");
 const gradleRegex2 = new RegExp(" ([a-zA-Z0-9\\-_]+)\\(\\) (↷|■|✔)( .*)?")
 const javacErrorRegex = new RegExp("\\[javac\\] ([^:]+):([0-9]+): error: (.*)");
 
-class JavaParser {
+class JavaParser extends Parser {
     constructor() {
+        super("JavaParser");
+        this.languages.push("java");
+
         this.currentTest = null;
-        this.tests = [];
-        this.errors = [];
     }
 
     parse(line) {
+        if (this.tool == null && line.toLowerCase().indexOf("mvn ") != -1 && line != "mvn version") {
+            this.tool = "maven";
+            this.startingMaven = true;
+        } else if (this.tool == null && line.toLowerCase().indexOf("ant ") != -1 && line != "ant version") {
+            this.tool = "ant";
+            this.startingMaven = true;
+        } else if (this.tool == null && line.toLowerCase().indexOf("gradle ") != -1 && line != "gradle version") {
+            this.tool = "gradle";
+            this.startingMaven = true;
+        }
+
         const start = startTestRun.exec(line);
         if (start) {
             this.currentTest = {

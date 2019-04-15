@@ -1,9 +1,10 @@
+const Parser = require("./Parser").Parser;
+
 const test = new RegExp("([0-9]+)/([0-9]+) Test +#([0-9]+): (.+) \\.+ +([^ ]+) +(.+) sec");
 
-class ObjcParser {
+class ObjcParser extends Parser {
     constructor() {
-        this.tests = [];
-        this.errors = [];
+        super("ObjcParser");
     }
 
     parse(line) {

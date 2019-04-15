@@ -1,0 +1,422 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Travis Real Time</title>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- Angular Material style sheet -->
+		<link rel="stylesheet" href="//fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
+		<!-- CSS -->
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
+
+		<link rel="stylesheet" href="/css/style.css">
+
+		<script type="text/javascript">
+            var host = window.location.hostname;
+            if (window.location.port) {
+                host += ":" + window.location.port;
+            }
+            var protocol = "ws";
+            if (window.location.protocol == "https:") {
+                protocol = "wss";
+            }
+            var ws = null;
+            var onmessage = null;
+            function startWS(){
+                ws = new WebSocket(protocol + '://' + host);
+                if (onmessage != null) {
+                    ws.onmessage = onmessage;
+                }
+                ws.onclose = function(){
+                    // Try to reconnect in 5 seconds
+                    setTimeout(function(){startWS()}, 5000);
+                };
+            }
+            startWS();
+
+            window.chartColors = {
+                red: 'rgb(255, 99, 132)',
+                orange: 'rgb(255, 159, 64)',
+                yellow: 'rgb(255, 205, 86)',
+                green: 'rgb(75, 192, 192)',
+                blue: 'rgb(54, 162, 235)',
+                purple: 'rgb(153, 102, 255)',
+                grey: 'rgb(201, 203, 207)',
+				darkBlue: 'rgb(75, 143, 192)',
+				darkRed: 'rgb(171, 60, 83)',
+				darkOrange: 'rgb(206, 104, 44)'
+            };
+            var color = Chart.helpers.color;
+
+			function loadData(callback) {
+				var xhttp = new XMLHttpRequest();
+				xhttp.onreadystatechange = function() {
+					if (this.readyState === 4 && this.status === 200) {
+                        callback(JSON.parse(this.responseText));
+					}
+				};
+				xhttp.open("GET", "api/stat", true);
+				xhttp.send();
+			}
+			loadData(function (stat) {
+
+                var totalJobs = 0;
+
+                var sortedLanguages = [];
+                for (let lang in stat.languages) {
+                    totalJobs += stat.languages[lang];
+                    sortedLanguages.push(lang);
+                }
+
+                sortedLanguages.sort(function (a, b) {
+                    return stat.languages[b] - stat.languages[a];
+                });
+
+                var minorLanguages = [];
+                for (var i of sortedLanguages) {
+                    var percent = stat.languages[i]*100/totalJobs;
+                    if (percent < 3) {
+                        minorLanguages.push(i);
+                    }
+                }
+
+
+
+                var dateFormat = 'MM DD HH';
+                var data = [];
+                var labels = [];
+
+                var jobPerHourLang = {};
+                var jobPerHourState = {};
+
+                var sortedTime = [];
+                for (var i in stat.jobPerHour) {
+                    sortedTime.push(i);
+                }
+                sortedTime.sort((a, b) => {
+                    var dateA = Date.UTC(a.substr(0, 4), a.substr(4, 2), a.substr(6, 2), a.substr(8, 2));
+                    var dateB = Date.UTC(b.substr(0, 4), b.substr(4, 2), b.substr(6, 2), b.substr(8, 2));
+                    return dateA - dateB;
+				});
+
+                document.querySelector("#total_job .value").innerHTML = totalJobs;
+                var sinceDate = new Date(Date.UTC(sortedTime[0].substr(0, 4), sortedTime[0].substr(4, 2), sortedTime[0].substr(6, 2), sortedTime[0].substr(8, 2)));
+                document.querySelector("#since").innerHTML = sinceDate.getDate() + "/" + sinceDate.getMonth() + "/" + sinceDate.getFullYear() + " at " + sinceDate.getHours() + "h" ;
+                document.querySelector("#running_job .value").innerHTML = stat.states.started.total;
+
+                for (var i of sortedTime) {
+                    var date = new Date(Date.UTC(i.substr(0, 4), i.substr(4, 2), i.substr(6, 2), i.substr(8, 2)));
+
+                    var label = date.getDate() + "/" + date.getMonth() + "/" + date.getFullYear() + " at " + date.getHours() + "h";
+                    labels.push(label);
+                    var others = 0;
+                    for (var lang of sortedLanguages) {
+                        if (jobPerHourLang[lang] == null) {
+                            jobPerHourLang[lang] = [];
+                        }
+                        if (minorLanguages.indexOf(lang) != -1 && stat.jobPerHour[i][lang]) {
+                            others += stat.jobPerHour[i][lang];
+                        } else {
+                            if (stat.jobPerHour[i][lang] == null) {
+                                jobPerHourLang[lang].push({
+                                    x: label,
+                                    y: 0
+                                });
+                            } else {
+                                jobPerHourLang[lang].push({
+                                    x: label,
+                                    y: stat.jobPerHour[i][lang]
+                                });
+                            }
+                        }
+					}
+                    if (jobPerHourLang['Other'] == null) {
+                        jobPerHourLang['Other'] = [];
+					}
+                    jobPerHourLang['Other'].push({
+                        x: label,
+                        y: others
+                    });
+
+				}
+                var  datasets = [];
+
+                for (var i in sortedLanguages) {
+                    var lang = sortedLanguages[i];
+                    if (minorLanguages.indexOf(lang) != -1) {
+                        continue;
+					}
+                    datasets.push({
+                        label: lang,
+                        backgroundColor: Object.values(chartColors)[i % Object.keys(chartColors).length],
+                        data: jobPerHourLang[lang],
+                        //type: 'bar',
+                        fill: "origin",
+                        lineTension: 0,
+                    })
+                }
+                datasets.push({
+                    label: "Other",
+                    backgroundColor: Object.values(chartColors)[datasets.length % Object.keys(chartColors).length],
+                    data: jobPerHourLang['Other'],
+                    type: 'line',
+                    fill: "origin",
+                    lineTension: 0,
+                });
+
+                var ctx = document.getElementById('jobs').getContext('2d');
+                ctx.canvas.width = 1000;
+                ctx.canvas.height = 300;
+
+
+
+
+
+                var cfg = {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: datasets
+                    },
+                    options: {
+                        tooltips: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            xAxes: [{
+                                //type: 'time',
+                                distribution: 'series',
+                                stacked: true,
+                                ticks: {
+                                    source: 'labels'
+                                }
+                            }],
+                            yAxes: [{
+                                stacked: true,
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: '# Jobs',
+                                }
+                            }]
+                        }
+                    }
+                };
+                new Chart(ctx, cfg);
+
+                data = [];
+                labels = [];
+                var backgrounds = Object.values(chartColors);
+
+                var others = 0;
+                for (var i of sortedLanguages) {
+                    var percent = stat.languages[i]*100/totalJobs;
+                    if (percent < 3) {
+                        others += stat.languages[i];
+					} else {
+                        data.push(stat.languages[i]);
+                        labels.push(i);
+                    }
+                }
+                data.push(others);
+                labels.push("Others");
+
+                var config = {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: data,
+                            backgroundColor: backgrounds,
+                            label: 'Languages'
+                        }],
+                        labels: labels
+                    },
+                    options: {
+                        responsive: true,
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false,
+                            text: 'Languages'
+                        },
+                        animation: {
+                            animateScale: false,
+                            animateRotate: false
+                        },
+
+                            circumference: Math.PI,
+                            rotation: -Math.PI
+
+                    }
+                };
+
+                ctx = document.getElementById('languages').getContext('2d');
+                ctx.canvas.width = 1000;
+                ctx.canvas.height = 300;
+                new Chart(ctx, config);
+
+
+                data = [];
+                var data2 = [];
+                labels = [];
+                backgrounds = [];
+                var backgrounds2 = [];
+
+                for (var i in stat.states) {
+                    data.push(stat.states[i].total);
+                    for (var j in sortedLanguages) {
+                        var lang = sortedLanguages[j];
+                        if (stat.states[i][lang] == null) {
+                            data2.push(0);
+						} else {
+                            data2.push(stat.states[i][lang]);
+						}
+                        backgrounds2.push(Object.values(chartColors)[j % Object.keys(chartColors).length]);
+					}
+                    labels.push(i);
+                    if (i == "passed") {
+                        backgrounds.push("green");
+					} else if (i == "failed") {
+                        backgrounds.push("red");
+                    } else if (i == "errored") {
+                        backgrounds.push("blue");
+                    } else if (i == "canceled") {
+                        backgrounds.push("grey");
+                    } else if (i == "started") {
+                        backgrounds.push("orange");
+                    } else if (i == "created") {
+                        backgrounds.push("yellow");
+                    } else if (i == "received") {
+                        backgrounds.push("purple");
+                    } else if (i == "queued") {
+                        backgrounds.push("purple");
+                    }
+                }
+
+                var config = {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [
+						{
+                            data: data,
+                            backgroundColor: backgrounds,
+                            label: 'States'
+                        }],
+                        labels: labels
+                    },
+                    options: {
+                        responsive: true,
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false,
+                            text: 'States'
+                        },
+                        animation: {
+                            animateScale: false,
+                            animateRotate: false
+                        },
+
+                        circumference: Math.PI,
+                        rotation: -Math.PI
+
+                    }
+                };
+
+                ctx = document.getElementById('states').getContext('2d');
+                ctx.canvas.width = 1000;
+                ctx.canvas.height = 300;
+                new Chart(ctx, config);
+            });
+		</script>
+
+		<style>
+			#wrapper {
+				padding: 0;
+			}
+			@media(min-width:768px) {
+    			.navbar-header {
+    				left: 0px;
+    				padding-left: 10vw;
+    			}
+    		}
+    		#page-wrapper {
+    			position: relative;
+    			width:80vw;
+    			padding-top: 50px;
+				margin: auto;
+    		}
+			.chart-container {
+				position: relative;
+				width:80vw;
+				margin: auto;
+			}
+			.grid-chart {
+				width: 380px;
+				float: left;
+			}
+			.highlight {
+				box-sizing: border-box;
+				float: left;
+				width: 48%;
+				margin: 2px 1%;
+				font-size: 20px;
+				background: #DDD;
+				min-height: 125px;
+				padding: 5px;
+			}
+			.highlight .highlight_label {
+				color: #4d5c6b;
+			}
+			.highlight .highlight_label .small {
+				font-size: 1Opx;
+				color: #7b7b7b;
+				float: right;
+			}
+			.highlight .value {
+				font-weight: bold;
+				font-size: 25px;
+				text-align: center;
+				line-height: 80px;
+			}
+			.clear {
+				clear: both;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="wrapper">
+			<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+				<div class="navbar-header">
+					<h2>Travis Real Time</h2>
+				</div>
+			</nav>
+			<div id="page-wrapper">
+				<div class="highlight" id="total_job">
+					<div class="highlight_label">Total Jobs <div class="small">(since <span id="since"></span>)</div></div>
+					<div class="value"></div>
+				</div>
+				<div class="highlight" id="running_job">
+					<div class="highlight_label">Currently Running Jobs</div>
+					<div class="value"></div>
+				</div>
+				<div class="clear"></div>
+				<h2>Job Per Hour</h2>
+				<canvas id="jobs"></canvas>
+				<h2>Languages</h2>
+				<canvas id="languages"></canvas>
+				<h2>States</h2>
+				<canvas id="states"></canvas>
+			</div>
+		</div>
+	</body>
+</html>

@@ -1,12 +1,13 @@
+const Parser = require("./Parser").Parser;
+
 const timeRegex = new RegExp("Time: ([0-9\\.]+) ([^,]+), Memory: ([0-9\\.]+)(.+)");
 const time2Regex = new RegExp("Time: ([0-9]+:[0-9]+), Memory: ([0-9\\.]+)(.+)");
 const testResults = new RegExp("Tests: ([0-9]+), Assertions: ([0-9]+)(, Errors: ([0-9]+))?(, Failures: ([0-9]+))?(, Skipped: ([0-9]+))?(, Incomplete: ([0-9]+))?.");
 const testResultsOk = new RegExp("OK \\(([0-9]+) tests, ([0-9]+) assertions\\)");
 
-class PhpParser {
+class PhpParser extends Parser {
     constructor() {
-        this.tests = [];
-        this.errors = [];
+        super("PhpParser");
         this.currentTest = null;
     }
 

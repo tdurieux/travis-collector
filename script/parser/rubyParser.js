@@ -1,16 +1,17 @@
+const Parser = require("./Parser").Parser;
+
 const test = new RegExp("^([\\.sF\\*]{4,})$");
 
-class RubyParser {
+class RubyParser extends Parser {
     constructor() {
-        this.languages = ["ruby"];
+        super("RubyParser");
 
-        this.tests = [];
-        this.errors = [];
+        this.languages.push("ruby");
     }
 
     parse(line) {
-        let result = test.exec(line);
-        if (result) {
+        let result = null;
+        if ((result = test.exec(line))) {
             this.tests.push({
                 name: "",
                 body: "",

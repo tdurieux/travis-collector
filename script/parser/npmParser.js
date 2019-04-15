@@ -1,17 +1,26 @@
+const Parser = require("./Parser").Parser;
+
 const testNoAssert = new RegExp("✖ (.*) Test finished without running any assertions");
-const testPassed = new RegExp("(✔|✓) ([^\\(]+)( \\(([0-9\\.]+)(.+)\\))$");
+const testPassed = new RegExp("(✔|✓) ([^\\(]+)( \\(([0-9\\.]+)(.+)\\))?$");
 const test2 = new RegExp("(ok|ko) ([0-9]+) (.*)$");
 const test3 = new RegExp("Executed ([0-9]+) of ([0-9]+) (.*) \\(([0-9\\.]*) secs / ([0-9\\.]*) secs\\)");
 
 const error = new RegExp("(.+):([0-9]+):([0-9]+) - error ([A-Z1-9]+): (.+)")
 
-class JsParser {
+const endMocha = new RegExp("([1-9]+) passing (.*)\\(([1-9]+)(.*)s\\)$");
+
+
+class JsParser extends Parser {
     constructor() {
-        this.tests = [];
-        this.errors = [];
+        super("JSParser");
     }
 
     parse(line) {
+        if (this.tool == null && line.indexOf("mocha ") != -1) {
+            this.tool = "mocha";
+            this.startingMocha = true;
+            this.totalTime = 0;
+        }
         let result = testNoAssert.exec(line);
         if (result) {
             this.tests.push({
@@ -26,8 +35,7 @@ class JsParser {
 
         } else {
             result = testPassed.exec(line);
-            if (result) {
-
+            if (result && this.startingMocha) {
                 let time = 0;
                 if (result[4] != null) {
                     time = parseFloat(result[4])
@@ -78,6 +86,12 @@ class JsParser {
                                 line: parseInt(result[2]),
                                 message: result[5]
                             });
+                        } else {
+                            result = endMocha.exec(line);
+                            if (result) {
+                                this.startingMocha = false;
+                                this.totalTime = parseFloat(result[3]);
+                            }
                         }
                     }
                 }
