@@ -5,4 +5,6 @@ before_install:
   - cd script
   - npm install
   - npm build
-script: timeout 10m node collect.js
+script: 
+  - timeout 10m node collect.js
+  - exit 0
