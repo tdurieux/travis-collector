@@ -19,15 +19,18 @@ let stat = {
     languages: {},
     states: {}
 };
-/*
+
 if (fs.existsSync("stat.json")) {
-    stat = JSON.parse(fs.readFileSync("stat.json", 'utf8'));
+    stat = JSON.parse(fs.readFileSync(__dirname + "/stat.json", 'utf8'));
 }
 
 if (fs.existsSync("unfinished.json")) {
-    unfinishedJobs = JSON.parse(fs.readFileSync("unfinished.json", 'utf8'));
+    try {
+        unfinishedJobs = JSON.parse(fs.readFileSync(__dirname + "/unfinished.json", 'utf8'));
+    } catch (e) {
+        unfinishedJobs = {}
+    }
 }
-*/
 
 /**
  * @param job_ids []
@@ -220,6 +223,13 @@ jobEmitter.on('job_finished', job => {
         });
     });*/
 });
+function twoDigitsNumber(n) {
+    n = n+''
+    if (n.length < 2) {
+        n = '0' + n
+    }
+    return n
+}
 jobEmitter.on('job', (job) => {
     if(!isFinished(job)) {
         if (unfinishedJobs[job.id] != null) {
@@ -228,7 +238,7 @@ jobEmitter.on('job', (job) => {
         unfinishedJobs[job.id] = job;
     }
     const today = new Date();
-    const key = today.getUTCFullYear() + "" + today.getUTCMonth() + today.getUTCDate() + today.getUTCHours();
+    const key = today.getUTCFullYear() + "" + twoDigitsNumber(today.getUTCMonth()) + twoDigitsNumber(today.getUTCDate()) + "" + twoDigitsNumber(today.getUTCHours());
 
     if (stat.jobPerHour[key] == null) {
         stat.jobPerHour[key] = {
@@ -283,7 +293,7 @@ module.exports.getJobsFromIds = getJobsFromIds;
 
 
 
-/*
+
 function exitHandler(options, exitCode) {
     if (options.exit) {
         fs.writeFile('stat.json', JSON.stringify(stat), (err, data) => {
@@ -299,4 +309,4 @@ process.on('exit', exitHandler.bind(null,{cleanup:true}));
 process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 process.on('SIGUSR1', exitHandler.bind(null, {exit:true}));
 process.on('SIGUSR2', exitHandler.bind(null, {exit:true}));
-process.on('uncaughtException', exitHandler.bind(null, {exit:true}));*/
+process.on('uncaughtException', exitHandler.bind(null, {exit:true}));

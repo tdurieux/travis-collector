@@ -87,8 +87,6 @@
                     }
                 }
 
-
-
                 var dateFormat = 'MM DD HH';
                 var data = [];
                 var labels = [];
@@ -108,13 +106,17 @@
 
                 document.querySelector("#total_job .value").innerHTML = totalJobs;
                 var sinceDate = new Date(Date.UTC(sortedTime[0].substr(0, 4), sortedTime[0].substr(4, 2), sortedTime[0].substr(6, 2), sortedTime[0].substr(8, 2)));
-                document.querySelector("#since").innerHTML = sinceDate.getDate() + "/" + sinceDate.getMonth() + "/" + sinceDate.getFullYear() + " at " + sinceDate.getHours() + "h" ;
-                document.querySelector("#running_job .value").innerHTML = stat.states.started.total;
+                document.querySelector("#since").innerHTML = sinceDate.getDate() + "/" + (sinceDate.getMonth() + 1) + "/" + sinceDate.getFullYear() + " at " + sinceDate.getHours() + "h" ;
+                var started = 0
+                if (stat.states.started) {
+                    started = stat.states.started.total
+                }
+                document.querySelector("#running_job .value").innerHTML = started;
 
                 for (var i of sortedTime) {
                     var date = new Date(Date.UTC(i.substr(0, 4), i.substr(4, 2), i.substr(6, 2), i.substr(8, 2)));
 
-                    var label = date.getDate() + "/" + date.getMonth() + "/" + date.getFullYear() + " at " + date.getHours() + "h";
+                    var label = date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear() + " at " + date.getHours() + "h";
                     labels.push(label);
                     var others = 0;
                     for (var lang of sortedLanguages) {
