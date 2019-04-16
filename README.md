@@ -5,7 +5,7 @@
 ```js
 cd script
 npm install
-npm build
+npm run-script build
 ```
 
 ## Usage

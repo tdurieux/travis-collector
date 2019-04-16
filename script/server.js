@@ -69,7 +69,7 @@ router.get('/job/:id', async function(req, res) {
 
 app.use("/api", router);
 
-app.use('/', express.static('../dist'));
+app.use('/', express.static(__dirname + '/dist'));
 
 const server = http.createServer(app);
 

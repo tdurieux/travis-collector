@@ -145,7 +145,7 @@
                 Tests: {{ $ctrl.job.tests.length }}<br>
                 Errors: {{ $ctrl.job.errors.length }}<br>
             </p>
-            <textarea ng-bind="$ctrl.job.log" rows="15"></textarea>
+            <textarea ng-bind="$ctrl.job.log" rows="15" style="width: 100%"></textarea>
         </div>
         <div class="modal-footer">
             <button class="btn btn-primary" type="button" ng-click="$ctrl.ok()">OK</button>
