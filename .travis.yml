@@ -1,4 +1,8 @@
 language: node_js
 node_js:
 - stable
-script: timeout 10m node script/collect.js
+before_install:
+  - cd script
+  - npm install
+  - npm build
+script: timeout 10m node collect.js
