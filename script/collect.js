@@ -3,7 +3,7 @@ const fs = require("fs");
 
 
 const scanner = require("./scanner");
-const DEST = (__dirname + "/../test/")
+const DEST = ("/tmp/travis-listener")
 
 if(!fs.existsSync(DEST)) {
     fs.mkdirSync(DEST)
