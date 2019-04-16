@@ -12,7 +12,7 @@ npm build
 
 ### Download jobs
 
-Download all the Travis-CI jobs into `DEST` folder (see `script/collect.js`).
+Download all the Travis-CI jobs into `DEST` folder (see `script/collect.js`). The JSON files are called `X-Y.json`, eg `480037011-480037260.json`. This means that the file contains all jobs between 480037011 and 480037260. This is way more performant that saving one job per file.
 
 ```js
 npm run-script collect
