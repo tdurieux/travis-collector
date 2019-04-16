@@ -3,11 +3,13 @@ const fs = require("fs");
 
 
 const scanner = require("./scanner");
-const DEST = "../test/"
+const DEST = (__dirname + "/../test/")
 
 if(!fs.existsSync(DEST)) {
     fs.mkdirSync(DEST)
 }
+
+console.log("The jobs are stored in " + fs.realpathSync(DEST))
 
 let count = 0;
 let nbRequest = 0;
