@@ -4,7 +4,7 @@ node_js:
 before_install:
   - cd script
   - npm install
-  - npm build
+  - npm run-script build
 script: 
   - timeout 10m node collect.js
-  - exit 0
+  - node buildUsage.js
