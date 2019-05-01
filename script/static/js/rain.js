@@ -35,7 +35,7 @@ var demo = {
 	// ideal time between drops (changed with mouse/finger)
 	drop_delay: 25,
 	// wind applied to rain (changed with mouse/finger)
-	wind: 8,
+	wind: 3,
 	// color of rain (set in init)
 	rain_color: null,
 	rain_color_clear: null,
@@ -80,8 +80,8 @@ demo.resize = function() {
 	demo.canvas.height = demo.height * demo.dpr;
 }
 
-demo.newRain = function (color) {
-    var new_rain = new Rain(color);
+demo.newRain = function (color, repository_slug) {
+    var new_rain = new Rain(color, repository_slug);
     new_rain.init();
     var wind_expand = Math.abs(demo.height / new_rain.speed * demo.wind); // expand spawn width as wind increases
     var spawn_x = Math.random() * (demo.width + wind_expand);
@@ -166,10 +166,13 @@ demo.draw = function() {
 		var r = rain[i];
 		var real_x = r.x * dpr;
 		var real_y = r.y * dpr;
-		ctx.moveTo(real_x, real_y);
-		// magic number 1.5 compensates for lack of trig in drawing angled rain
-        ctx.lineTo(real_x - demo.wind * r.z * dpr * 1.5, real_y - rain_height * r.z);
-        ctx.strokeStyle = r.color;
+		// ctx.moveTo(real_x, real_y);
+		// // magic number 1.5 compensates for lack of trig in drawing angled rain
+		// ctx.lineTo(real_x - demo.wind * r.z * dpr * 1.5, real_y - rain_height * r.z*2);
+		ctx.font = "30px Arial";
+		ctx.strokeStyle = r.color;
+		ctx.fillStyle = r.color;
+		ctx.fillText(r.repository_slug, real_x, real_y - rain_height * r.z)
         ctx.stroke();
     }
     
@@ -186,13 +189,14 @@ demo.draw = function() {
 
 
 // Rain definition
-function Rain(color) {
+function Rain(color, repository_slug) {
 	this.x = 0;
 	this.y = 0;
 	this.z = 0;
-	this.speed = 25;
+	this.speed = 10;
     this.splashed = false;
-    this.color = color
+	this.color = color;
+	this.repository_slug = repository_slug;
 }
 Rain.width = 2;
 Rain.height = 40;
@@ -210,7 +214,7 @@ Rain.prototype.splash = function() {
 		this.splashed = true;
 		var drops = demo.drops;
 
-		for (var i=0; i<25; i++) {
+		for (var i=0; i<50; i++) {
 			var drop = new Drop(this.color);
 			drops.push(drop);
 			drop.init(this.x);
@@ -358,7 +362,7 @@ var onmessage = function (e) {
 			} else if (event.data.state == "queued") {
 				color = ("purple");
 			}
-			demo.newRain(colors[color])
+			demo.newRain(colors[color], event.data.commit.message)
 		}, Math.round(Math.random() * 5000))
 	})(JSON.parse(e.data));
 };
