@@ -36,7 +36,8 @@ module.exports = function(grunt) {
                     'dist/js/jquery.js': ['static/bower/js/dist/jquery.js'],
                     'dist/js/underscore.js': ['static/bower/js/underscore.js'],
                     'dist/js/require.js': ['static/bower/js/require.js'],
-                    'dist/js/script.js': ['static/js/script.js']
+                    'dist/js/script.js': ['static/js/script.js'],
+                    'dist/js/rain.js': ['static/js/rain.js']
                 }
             }
         },
@@ -52,6 +53,9 @@ module.exports = function(grunt) {
                         'static/bower/css/dist/css/bootstrap-grid.css',
                         'static/bower/css/dist/css/bootstrap-reboot.css',
                         'static/css/style.css'
+                    ],
+                    'dist/css/rain.css': [
+                        'static/css/rain.css'
                     ]
                 }
             }
@@ -64,8 +68,19 @@ module.exports = function(grunt) {
                 },
                 files: {
                     'dist/index.html': 'static/index.html',
+                    'dist/rain.html': 'static/rain.html',
                     'dist/stat.html': 'static/stat.html'
                 }
+            }
+        },
+        copy: {
+            dist: {
+                files: [{ 
+                    expand: true,
+                    cwd: 'static/images/', 
+                    src: ['**/*.{png,jpg,svg}'], 
+                    dest:'dist/images/' 
+                }]
             }
         },
         watch: {
@@ -90,13 +105,14 @@ module.exports = function(grunt) {
         }
     });
 
+    grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-htmlmin');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-bower');
 
-    grunt.registerTask('default', ['bower', 'uglify', 'cssmin', 'htmlmin']);
+    grunt.registerTask('default', ['bower', 'uglify', 'cssmin', 'htmlmin', 'copy']);
 
     grunt.registerTask('dev', ['watch']);
 

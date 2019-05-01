@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "grunt",
+    "dev": "grunt dev",
     "server": "node server.js",
     "collect": "node collect.js"
   },
@@ -22,6 +23,7 @@
     "diff": "^4.0.1",
     "domutils": "^1.7.0",
     "express": "^4.16.4",
+    "grunt-contrib-copy": "^1.0.0",
     "jsonpack": "^1.1.5",
     "readdir-enhanced": "^2.2.4",
     "strip-ansi": "^5.0.0",
