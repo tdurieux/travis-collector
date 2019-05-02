@@ -6,5 +6,6 @@ before_install:
   - npm install
   - npm run-script build
 script: 
-  - timeout 10m node collect.js
-  - node buildUsage.js
+  - timeout 2m node collect.js
+  - exit 0
+

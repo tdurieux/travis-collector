@@ -18,6 +18,7 @@ var demo = {
 		b: '255',
 		a: '0.5'
 	},
+	images: {},
 	
 	// END CUSTOMIZATION
 	// whether demo is running
@@ -35,7 +36,7 @@ var demo = {
 	// ideal time between drops (changed with mouse/finger)
 	drop_delay: 25,
 	// wind applied to rain (changed with mouse/finger)
-	wind: 3,
+	wind: -3,
 	// color of rain (set in init)
 	rain_color: null,
 	rain_color_clear: null,
@@ -54,7 +55,6 @@ demo.init = function() {
 		demo.canvas = document.getElementById('canvas');
 		demo.ctx = demo.canvas.getContext('2d');
 		var c = demo.color;
-		demo.rain_color = 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + c.a + ')';
 		demo.rain_color_clear = 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',0)';
 		demo.resize();
 		Ticker.addListener(demo.step);
@@ -169,10 +169,13 @@ demo.draw = function() {
 		// ctx.moveTo(real_x, real_y);
 		// // magic number 1.5 compensates for lack of trig in drawing angled rain
 		// ctx.lineTo(real_x - demo.wind * r.z * dpr * 1.5, real_y - rain_height * r.z*2);
-		ctx.font = "30px Arial";
+		ctx.font = "20px Arial";
 		ctx.strokeStyle = r.color;
 		ctx.fillStyle = r.color;
-		ctx.fillText(r.repository_slug, real_x, real_y - rain_height * r.z)
+		var message = r.job.commit.message.split('\n')[0]
+		ctx.fillText(message, real_x, real_y)
+
+		ctx.drawImage(demo.images[r.job.username], real_x - 43, real_y - 30, 40, 40);
         ctx.stroke();
     }
     
@@ -189,14 +192,35 @@ demo.draw = function() {
 
 
 // Rain definition
-function Rain(color, repository_slug) {
+function Rain(job) {
 	this.x = 0;
 	this.y = 0;
 	this.z = 0;
 	this.speed = 10;
     this.splashed = false;
-	this.color = color;
-	this.repository_slug = repository_slug;
+	this.job = job;
+	this.job.username = job.repository_slug.substring(0, job.repository_slug.indexOf('/'))
+
+	var color = "green"
+	if (job.state == "passed") {
+		color = ("green");
+	} else if (job.state == "failed") {
+		color = ("red");
+	} else if (job.state == "errored") {
+		color = ("blue");
+	} else if (job.state == "canceled") {
+		color = ("grey");
+	} else if (job.state == "started") {
+		color = ("orange");
+	} else if (job.state == "created") {
+		color = ("yellow");
+	} else if (job.state == "received") {
+		color = ("purple");
+	} else if (job.state == "queued") {
+		color = ("purple");
+	}
+
+	this.color = colors[color]
 }
 Rain.width = 2;
 Rain.height = 40;
@@ -227,7 +251,7 @@ Rain.prototype.splash = function() {
 function Drop(color) {
 	this.x = 0;
 	this.y = 0;
-	this.radius = Math.round(Math.random() * 2 + 1) * demo.dpr;
+	this.radius = Math.round(Math.random() * 2 + 2) * demo.dpr;
 	this.speed_x = 0;
 	this.speed_y = 0;
 	this.canvas = document.createElement('canvas');
@@ -240,12 +264,12 @@ function Drop(color) {
 
 	var grd = this.ctx.createRadialGradient(this.radius, this.radius , 1, this.radius, this.radius, this.radius);
 	grd.addColorStop(0, color);
-	grd.addColorStop(1, demo.rain_color_clear);
+	grd.addColorStop(1, color.replace('rgb', 'rgba').replace(')', ', 0)'));
 	this.ctx.fillStyle = grd;
 	this.ctx.fillRect(0, 0, diameter, diameter);
 }
 
-Drop.max_speed = 5;
+Drop.max_speed = 7;
 
 Drop.prototype.init = function(x) {
 	this.x = x;
@@ -316,6 +340,7 @@ var Ticker = (function(){
 }());
 
 
+
 var colors = chartColors = {
 	red: 'rgb(255, 99, 132)',
 	orange: 'rgb(255, 159, 64)',
@@ -344,25 +369,13 @@ var onmessage = function (e) {
 	}
 	(function (event) { 
 		setTimeout(function () {
-			var color = "green"
-			if (event.data.state == "passed") {
-				color = ("green");
-			} else if (event.data.state == "failed") {
-				color = ("red");
-			} else if (event.data.state == "errored") {
-				color = ("blue");
-			} else if (event.data.state == "canceled") {
-				color = ("grey");
-			} else if (event.data.state == "started") {
-				color = ("orange");
-			} else if (event.data.state == "created") {
-				color = ("yellow");
-			} else if (event.data.state == "received") {
-				color = ("purple");
-			} else if (event.data.state == "queued") {
-				color = ("purple");
+			event.data.username = event.data.repository_slug.substring(0, event.data.repository_slug.indexOf('/'))
+			if (!demo.images[event.data.username]) {
+				var myImg = new Image();
+				myImg.src = 'https://github.com/' + event.data.username + '.png?size=40';
+				demo.images[event.data.username] = myImg
 			}
-			demo.newRain(colors[color], event.data.commit.message)
+			demo.newRain(event.data)
 		}, Math.round(Math.random() * 5000))
 	})(JSON.parse(e.data));
 };

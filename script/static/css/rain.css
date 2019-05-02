@@ -5,11 +5,9 @@ canvas {
 	top: 0
 }
 body {
-background-image: url('../images/travis-ci-logo.svg'), -moz-linear-gradient(top,  rgba(8,13,40,1) 0%, rgba(38,19,0,1) 100%); /* FF3.6-15 */
-background-image: url('../images/travis-ci-logo.svg'), -webkit-linear-gradient(top,  rgba(8,13,40,1) 0%,rgba(38,19,0,1) 100%); /* Chrome10-25,Safari5.1-6 */
-background-image: url('../images/travis-ci-logo.svg'), linear-gradient(to bottom,  rgba(8,13,40,1) 0%,rgba(38,19,0,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+background-image: url('../images/travis-ci-logo.svg'); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 
-background-position: top; /* Center the image */
-background-repeat: no-repeat; /* Do not repeat the image */
-background-size: auto 129%;
+background-position: center;
+background-repeat: no-repeat;
+background-size: auto 50%;
 }
