@@ -1,5 +1,27 @@
 # Travis Scanner
 
+This is the repository of the paper "An Analysis of 35+ Million Jobs of Travis CI".
+
+If you are using this repository please cite it like this
+
+```bib
+@inproceedings{DurieuxTravis19,
+  author    = {Thomas Durieux and
+               Rui Abreu and
+               Martin Monperrus and
+               Tegawend{\'{e}} F. Bissyand{\'{e}} and
+               Luis Cruz},
+  title     = {An Analysis of 35+ Million Jobs of Travis {CI}},
+  booktitle = {2019 {IEEE} International Conference on Software Maintenance and Evolution,
+               {ICSME} 2019, Cleveland, OH, USA, September 29 - October 4, 2019},
+  pages     = {291--295},
+  publisher = {{IEEE}},
+  year      = {2019},
+  url       = {https://doi.org/10.1109/ICSME.2019.00044},
+  doi       = {10.1109/ICSME.2019.00044}
+}
+```
+
 ## Install
 
 ```js
